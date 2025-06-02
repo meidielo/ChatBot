@@ -2,7 +2,7 @@
 
 **Purpose:** Help students and tutors deploy and run the Assignment 3 chatbot on Windows 10/11 or macOS using VS Code.
 
----
+--- ///
 
 ## 🗂️ Preparation
 
