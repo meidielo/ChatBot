@@ -5,6 +5,7 @@
 import streamlit as st
 import json
 import boto3
+import sqlite3
 from datetime import datetime
 from PyPDF2 import PdfReader
 
@@ -15,7 +16,7 @@ IDENTITY_POOL_ID = "us-east-1:7771aae7-be2c-4496-a582-615af64292cf"
 USER_POOL_ID = "us-east-1_koPKi1lPU"
 APP_CLIENT_ID = "3h7m15971bnfah362dldub1u2p"
 USERNAME = "s4155089@student.rmit.edu.au" # Replace with your username
-PASSWORD = "Assignment3bot!"    # Replace with your password
+PASSWORD = "c5ZvgdeVN7wghQ-"    # Replace with your password
 
 
 # === Helper: Get AWS Credentials === #
@@ -41,9 +42,34 @@ def get_credentials(username, password):
 
     return creds_response["Credentials"]
 
+# === load scraped RMIT content from SQLite ===
+def load_rmit_pages(db_path="rmit_data.db"):
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+    cur.execute("SELECT content FROM pages")
+    all_pages = cur.fetchall()
+    conn.close()
+    # Join all page text together or keep separate as needed
+    return "\n\n".join(page[0] for page in all_pages)
+
+# Load all scraped RMIT content once at startup
+rmit_knowledge = load_rmit_pages()
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
 # === Helper: Build Prompt from JSON + Structure === #
-def build_prompt(courses, user_question, structure=None):
+def build_prompt(full_course_context, user_question, structure_text):
+    # Load history
+    history = st.session_state.get("messages", [])
+    chat_history = ""
+
+    for msg in history:
+        if msg["role"] == "user":
+            chat_history += f"User: {msg['content']}\n"
+        elif msg["role"] == "assistant":
+            chat_history += f"Advisor: {msg['content']}\n"
+
     course_dict = {c["title"]: c for c in courses}
 
     structure_text = ""
@@ -76,11 +102,12 @@ def build_prompt(courses, user_question, structure=None):
         "Bachelor of Cyber Security program at RMIT (codes BP355/BP356). "
         "Recommend only from the official course list. Each course is categorized as core, capstone, minor, or elective. "
         "Use the recommended structure to suggest suitable courses based on study year and interest.\n\n"
-        + structure_text
-        + "\n### All Available Courses:\n"
-        + full_course_context
-        + "\n\nUser:\n" + user_question
+        "Do not give personal advice unless the user has provided context. If they greet you or ask general questions like 'who am I?', respond politely and prompt them for more information.\n\n"
+        f"### Degree Structure:\n{structure_text}\n\n"
+        f"### All Available Courses:\n{full_course_context}\n\n"
+        f"### Conversation History:\n{chat_history}"
     )
+
     return prompt
 
 
@@ -131,55 +158,65 @@ def invoke_bedrock(prompt_text, max_tokens=640, temperature=0.3, top_p=0.9):
 
 
 # === Streamlit UI === #
-st.set_page_config(page_title="RMIT Cyber Security Course Advisor", layout="centered")
+st.set_page_config(page_title="RMIT Chatbot", layout="wide")
+st.title("RMIT Chatbot")
+st.markdown("This assistant helps students select courses and answer RMIT related questions.")
 
-st.title("\U0001F393 Cyber Security Course Advisor")
-st.markdown("This assistant helps students in RMIT's Bachelor of Cyber Security (BP355/BP356) choose courses.")
+with open("courses_data.json", "r", encoding="utf-8") as f1:
+    courses = json.load(f1)
+with open("cyber_security_program_structure.json", "r", encoding="utf-8") as f2:
+    structure = json.load(f2)
+uploaded_pdfs = None
 
-st.subheader("Step 1: Choose your data input format")
-upload_mode = st.radio("Select format:", ["Structured JSON files", "Unstructured PDF files"])
 
-if upload_mode == "Structured JSON files":
-    uploaded_courses_json = st.file_uploader("\U0001F4C1 Upload `courses_data.json`", type=["json"], key="courses")
-    uploaded_structure_json = st.file_uploader("\U0001F4C1 Upload `cyber_security_program_structure.json`", type=["json"], key="structure")
-    uploaded_pdfs = None
-else:
-    uploaded_pdfs = st.file_uploader("\U0001F4C4 Upload one or more PDF files", type=["pdf"], accept_multiple_files=True)
-    uploaded_courses_json = None
-    uploaded_structure_json = None
+st.subheader("💬 Chat with the Course Advisor")
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
 
-st.subheader("Step 2: Ask a question")
-user_question = st.text_input(
-    "\U0001F4AC What would you like to ask?",
-    placeholder="e.g., I'm a second-year student interested in digital forensics and blockchain."
-)
+user_question = st.chat_input("Ask about course enrolment, policies, or RMIT info...")
 
-if st.button("\U0001F4A1 Get Advice"):
-    if not user_question:
-        st.warning("Please enter a question.")
-    elif upload_mode == "Structured JSON files" and (not uploaded_courses_json or not uploaded_structure_json):
-        st.warning("Please upload both JSON files.")
-    elif upload_mode == "Unstructured PDF files" and not uploaded_pdfs:
-        st.warning("Please upload at least one PDF file.")
-    else:
-        try:
-            if upload_mode == "Structured JSON files":
-                courses = json.load(uploaded_courses_json)
-                structure = json.load(uploaded_structure_json)
-                prompt = build_prompt(courses, user_question, structure)
-            else:
-                extracted_text = extract_text_from_pdfs(uploaded_pdfs)
-                prompt = (
-                    "You are a course advisor. The following is extracted from official course documents:\n\n"
-                    + extracted_text +
-                    "\n\nPlease answer the following question based on this information:\n"
-                    + user_question
-                )
+if user_question:
+    # Save and display user message
+    st.session_state.messages.append({"role": "user", "content": user_question})
+    with st.chat_message("user"):
+        st.markdown(user_question)
+    full_course_context = "\n".join(
+        f"- {c['title']} ({c['course_code']}): {c['description']}" for c in courses
+    )
+    structure_text = "### Recommended Study Plan by Year:\n"
+    for year, titles in structure["recommended_courses"].items():
+        structure_text += f"**{year.replace('_',' ').title()}**: " + ", ".join(titles) + "\n"
 
-            with st.spinner("\U0001F50D Generating advice..."):
-                answer = invoke_bedrock(prompt)
-                st.success("\u2705 Response received")
-                st.text_area("\U0001F916 Claude's Answer", answer, height=300)
+    # Add RMIT scraped data into the prompt
+    prompt = (
+        "You are a helpful AI assistant for RMIT students.\n\n"
+        "You have access to:\n"
+        f"1. Bachelor of Cyber Security course data:\n{full_course_context}\n\n"
+        f"2. Recommended study structure:\n{structure_text}\n\n"
+        "3. Up‐to‐date information scraped from RMIT's official website:\n"
+        f"{rmit_knowledge[:2000]}  \n"  # only pass first 2k chars, tweak as needed
+        "\n### Conversation History:\n"
+    )
 
-        except Exception as e:
-            st.error(f"\u274C Error: {str(e)}")
+    # Include chat history in the prompt
+    for msg in st.session_state.messages[:-1]:  # exclude the latest, since we add it after
+        if msg["role"] == "user":
+            prompt += f"User: {msg['content']}\n"
+        else:
+            prompt += f"Advisor: {msg['content']}\n"
+
+    # Finally add the latest question
+    prompt += f"{user_question}\n"
+
+    try:
+        # Call Claude (or your chosen model) with the combined prompt
+        response = invoke_bedrock(prompt)
+        st.session_state.messages.append({"role": "assistant", "content": response})
+        with st.chat_message("assistant"):
+            st.markdown(response)
+    except Exception as e:
+        error_msg = f"❌ Error: {e}"
+        st.session_state.messages.append({"role": "assistant", "content": error_msg})
+        with st.chat_message("assistant"):
+            st.markdown(error_msg)
