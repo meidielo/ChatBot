@@ -4,7 +4,7 @@
 
 **Purpose:** This guide supports assessment of the RMIT Cyber Security Course Advisor project. It details how to set up and run the chatbot, review its knowledge integration, and evaluate its deployment using AWS Bedrock.
 
----
+--- ///
 
 ## 🗂️ Project Overview
 
