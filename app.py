@@ -1,6 +1,6 @@
-# Cyber Security Course Advisor via AWS Bedrock
-# Author: Cyrus Gao, extended by Xiang Li
-# Updated: May 2025
+# RMIT ChatBot
+# Author: Meidie Fei, Banharith
+# Updated: June 2025
 
 import streamlit as st
 import json
