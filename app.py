@@ -157,6 +157,8 @@ def invoke_bedrock(prompt_text, max_tokens=640, temperature=0.3, top_p=0.9):
 
 
 # === Streamlit UI === #
+st.set_page_config(page_title="RMIT Chatbot", layout="wide")
+
 st.markdown("""
 <style>
 /* Push content up when the mobile keyboard opens */
@@ -175,7 +177,6 @@ input:focus, textarea:focus {
 </style>
 """, unsafe_allow_html=True)
 
-st.set_page_config(page_title="RMIT Chatbot", layout="wide")
 st.title("RMIT Chatbot")
 st.markdown("This assistant helps students select courses and answer RMIT related questions.")
 
