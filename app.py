@@ -214,15 +214,15 @@ main .block-container {
 st.markdown(
     """
     <div style='text-align: center; margin-top: 30px;'>
-        <img src="https://static.streamlit.io/badge/streamlit-mark-color.svg" width="100" style="margin-bottom: 10px;">
-        <h3 style='font-family: "Segoe UI", sans-serif;'>Hello 👋, I'm your AI assistant.<br>How can I help you today?</h3>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/8/8e/RMIT_University_Logo.svg" width="200" style="margin-bottom: 10px;">
+        <h3 style='font-family: "Segoe UI", sans-serif;'>
+            🎓 Welcome to the RMIT Course Advisor<br>
+            Get help with subjects, enrolment, and program info across all disciplines.
+        </h3>
     </div>
     """,
     unsafe_allow_html=True
 )
-
-st.title("RMIT Chatbot")
-st.markdown("This assistant helps students select courses and answer RMIT related questions.")
 
 with open("courses_data.json", "r", encoding="utf-8") as f1:
     courses = json.load(f1)
@@ -230,8 +230,6 @@ with open("cyber_security_program_structure.json", "r", encoding="utf-8") as f2:
     structure = json.load(f2)
 uploaded_pdfs = None
 
-
-st.subheader("Chat with the Course Advisor")
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
