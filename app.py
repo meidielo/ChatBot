@@ -168,7 +168,7 @@ st.markdown("""
     left: 0;
     width: 100% !important;
     background: #0e1117;
-    padding: 10px 16px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
     z-index: 1000;
     box-shadow: 0 -1px 5px rgba(0,0,0,0.2);
 }
@@ -210,6 +210,16 @@ main .block-container {
 }
 </style>
 """, unsafe_allow_html=True)
+
+st.markdown(
+    """
+    <div style='text-align: center; margin-top: 30px;'>
+        <img src="https://static.streamlit.io/badge/streamlit-mark-color.svg" width="100" style="margin-bottom: 10px;">
+        <h3 style='font-family: "Segoe UI", sans-serif;'>Hello 👋, I'm your AI assistant.<br>How can I help you today?</h3>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 st.title("RMIT Chatbot")
 st.markdown("This assistant helps students select courses and answer RMIT related questions.")
