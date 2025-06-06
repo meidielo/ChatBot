@@ -4,15 +4,15 @@
 
 **Purpose:** This guide supports assessment of the RMIT Cyber Security Course Advisor project. It details how to set up and run the chatbot, review its knowledge integration, and evaluate its deployment using AWS Bedrock.
 
---- ///
+---
 
-## 🗂️ Project Overview
+## Project Overview
 
 This project is a browser-based chatbot built with Streamlit and powered by Claude (via AWS Bedrock). It helps students in the **Bachelor of Cyber Security (BP355/BP356)** program explore courses, program structure, and RMIT resources.
 
 ---
 
-## 📁 Folder Structure
+## Folder Structure
 
 ```
 cyber_security_chatbot/
@@ -26,9 +26,9 @@ cyber_security_chatbot/
 
 ---
 
-## 🐍 Python & Environment Setup
+## Python & Environment Setup
 
-### ✅ Required Version: Python 3.11
+### Required Version: Python 3.11
 
 Check your version:
 
@@ -38,7 +38,7 @@ python --version
 
 If not 3.11, download from [python.org](https://www.python.org/downloads/release/python-3110/).
 
-### 🔒 Set up a virtual environment
+### Set up a virtual environment
 
 ```bash
 cd cyber_security_chatbot
@@ -47,7 +47,7 @@ python -m venv .venv
 source .venv/bin/activate      # On macOS/Linux
 ```
 
-### 📆 Install all dependencies
+### Install all dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -61,7 +61,7 @@ pip install beautifulsoup4
 
 ---
 
-## 🔐 AWS Configuration (for assessors with IAM access)
+## AWS Configuration (for assessors with IAM access)
 
 Open `app.py` and insert your credentials:
 
@@ -74,7 +74,7 @@ If you are not registered in Cognito, contact the instructor for a test account 
 
 ---
 
-## 🚀 Running the Chatbot
+## Running the Chatbot
 
 ### Step 1: Start the app
 
@@ -92,7 +92,7 @@ The chatbot will open in your browser at:
 
 ---
 
-## 🌐 Data Crawling (Dynamic Knowledge Base)
+## Data Crawling (Dynamic Knowledge Base)
 
 To refresh the scraped content:
 
@@ -104,7 +104,7 @@ This will update `rmit_data.db` with the latest text from RMIT's public website 
 
 ---
 
-## 💡 Example Prompts
+## Example Prompts
 
 * "What courses should I take in Year 2?"
 * "Can I choose electives related to AI?"
@@ -114,14 +114,14 @@ The assistant responds using structured context and scraped information.
 
 ---
 
-## 🧪 Testing Notes
+## Testing Notes
 
 * Data limit: First \~2000 characters of `rmit_data.db` are passed to Claude to avoid token overload.
 * Claude is instructed to avoid repeating user questions or listing irrelevant information unless directly asked.
 
 ---
 
-## 🛠️ Troubleshooting
+## Troubleshooting
 
 | Issue                          | Solution                               |
 | ------------------------------ | -------------------------------------- |
@@ -132,7 +132,7 @@ The assistant responds using structured context and scraped information.
 
 ---
 
-## ✅ Complete
+## Complete
 
 The chatbot now meets the brief: integrates course metadata, supports live user queries, and enhances responses with scraped RMIT data.
 

@@ -98,11 +98,10 @@ def build_prompt(full_course_context, user_question, structure_text):
     full_course_context = "\n".join(course_list)
 
     prompt = (
-        "You are a helpful assistant that supports students in selecting courses from the "
-        "Bachelor of Cyber Security program at RMIT (codes BP355/BP356). "
+        "You are a helpful assistant that supports students in RMIT University related questions"
         "Recommend only from the official course list. Each course is categorized as core, capstone, minor, or elective. "
         "Use the recommended structure to suggest suitable courses based on study year and interest.\n\n"
-        "Do not give personal advice unless the user has provided context. If they greet you or ask general questions like 'who am I?', respond politely and prompt them for more information.\n\n"
+        "Do not give personal advice unless the user has provided context. If they greet you or ask general questions, respond politely and prompt them for more information.\n\n"
         f"### Degree Structure:\n{structure_text}\n\n"
         f"### All Available Courses:\n{full_course_context}\n\n"
         f"### Conversation History:\n{chat_history}"
@@ -169,7 +168,7 @@ with open("cyber_security_program_structure.json", "r", encoding="utf-8") as f2:
 uploaded_pdfs = None
 
 
-st.subheader("💬 Chat with the Course Advisor")
+st.subheader("Chat with the Course Advisor")
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
