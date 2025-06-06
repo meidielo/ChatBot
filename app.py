@@ -161,18 +161,52 @@ st.set_page_config(page_title="RMIT Chatbot", layout="wide")
 
 st.markdown("""
 <style>
-/* Push content up when the mobile keyboard opens */
-input:focus, textarea:focus {
+/* Float input bar at bottom */
+.stChatInputContainer {
     position: fixed !important;
-    bottom: 80px !important;
-    left: 5%;
-    width: 90% !important;
-    z-index: 999;
+    bottom: 0 !important;
+    left: 0;
+    width: 100% !important;
+    background: #0e1117;
+    padding: 10px 16px;
+    z-index: 1000;
+    box-shadow: 0 -1px 5px rgba(0,0,0,0.2);
 }
 
-/* Ensure bottom spacing to prevent overlap */
-.stApp {
-    padding-bottom: 120px;
+/* Prevent chat content from being hidden behind input bar */
+main .block-container {
+    padding-bottom: 100px !important;
+}
+
+/* Remove avatars */
+.stChatMessageAvatar {
+    display: none !important;
+}
+
+/* Style chat bubbles */
+.stChatMessage {
+    padding: 8px 12px;
+    border-radius: 18px;
+    margin: 6px 0;
+    max-width: 85%;
+    display: inline-block;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+/* Left-align user messages */
+.stChatMessage.user {
+    background-color: #3a3b3c;
+    color: white;
+    align-self: flex-start;
+}
+
+/* Right-align bot messages */
+.stChatMessage.assistant {
+    background-color: #1a73e8;
+    color: white;
+    align-self: flex-end;
+    margin-left: auto;
 }
 </style>
 """, unsafe_allow_html=True)
