@@ -277,16 +277,18 @@ st.markdown("""
 /* Container holding the whole input bar and + button */
 div[data-testid="stHorizontalBlock"] {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
+    bottom: 1%;
+    left: 20%;
+    width: 60%;
     background-color: #1e1e1e;
-    padding: 12px 20px;
+    padding: 24px 30px;
     z-index: 1000;
     border-top: 1px solid #333;
-    border-radius: 0;
+    border-radius: 8px;
     display: flex;
     align-items: center;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.3);
+    
 }
 
 /* Full-width text input */
@@ -295,7 +297,7 @@ div[data-testid="stChatInput"] input[type="text"]{
     background: transparent !important;
     border: none !important;
     color: white !important;
-    font-size: 15px !important;
+    font-size: 18px !important;
     padding: 10px 12px !important;
 }
 
