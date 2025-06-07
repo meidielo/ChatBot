@@ -126,9 +126,9 @@ def build_prompt(full_course_context, user_question, structure_text, search_summ
         )
 
     if uploaded_file is not None and file_text:
-        prompt_text = f"{user_question}\n\nBelow is the content of a file the user uploaded:\n{file_text}"
+        prompt += f"{user_question}\n\nBelow is the content of a file the user uploaded:\n{file_text}"
     else:
-        prompt_text = user_question
+        prompt += user_question
 
 
     # Use a less echo-prone format
@@ -189,45 +189,6 @@ def invoke_bedrock(prompt_text, max_tokens=640, temperature=0.3, top_p=0.9):
 
     result = json.loads(response["body"].read())
     return result["content"][0]["text"]
-
-def search_web(query):
-    api_key = "03db60a634859ca61c28834e86aa14343359f0c2a6e40fd23a1580db7a25dbc8"
-    url = "https://serpapi.com/search"
-    params = {
-        "q": query,
-        "api_key": api_key,
-        "engine": "google",
-        "num": 3  # Top 3 results only
-    }
-    try:
-        response = requests.get(url, params=params)
-        data = response.json()
-        results = data.get("organic_results", [])
-        summaries = []
-        for r in results:
-            title = r.get("title", "")
-            link = r.get("link", "")
-            snippet = r.get("snippet", "")
-            summaries.append(f"Title: {title}\nSnippet: {snippet}\nLink: {link}")
-        return "\n\n".join(summaries)
-    except Exception as e:
-        return f"[Search failed: {str(e)}]"
-    
-def is_answerable_locally(question, course_data, structure_data):
-    question_lower = question.lower()
-
-    for course in course_data:
-        if course["title"].lower() in question_lower or course["course_code"].lower() in question_lower:
-            return True
-        if course["description"] and course["description"].lower() in question_lower:
-            return True
-
-    for year, courses in structure_data["recommended_courses"].items():
-        for course_title in courses:
-            if course_title.lower() in question_lower:
-                return True
-
-    return False
 
 # === Streamlit UI === #
 # Load data
@@ -347,19 +308,10 @@ if user_question:
     for year, titles in structure["recommended_courses"].items():
         structure_text += f"**{year.replace('_',' ').title()}**: " + ", ".join(titles) + "\n"
 
-    # Determine whether web search is needed
-    if is_answerable_locally(user_question, courses, structure):
-        search_summary = ""
-        web_used = False
-    else:
-        search_summary = search_web(user_question)
-        web_used = bool(search_summary and "no relevant" not in search_summary.lower())
-
     prompt = build_prompt(
     full_course_context=full_course_context,
     user_question=user_question,
     structure_text=structure_text,
-    search_summary=search_summary,
     rmit_knowledge=rmit_knowledge,
     file_text=file_text
 )
@@ -377,7 +329,5 @@ if user_question:
 
     st.session_state.messages.append({"role": "assistant", "content": response})
     with st.chat_message("assistant"):
-        if web_used:
-            st.markdown("<span style='color:green;'>🌐 <b>Online sources used</b></span>", unsafe_allow_html=True)
         st.markdown(response, unsafe_allow_html=False)
         uploaded_file = None
