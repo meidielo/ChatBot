@@ -59,12 +59,82 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # === Helper: Build Prompt from JSON + Structure === #
+<<<<<<< Updated upstream
 def build_prompt(full_course_context, user_question, structure_text):
     # Load history
+=======
+def build_prompt(full_course_context, user_question, structure_text, rmit_knowledge, file_text=""):
+    # Load chat history
+>>>>>>> Stashed changes
     history = st.session_state.get("messages", [])
-    chat_history = ""
+    # chat_history = ""
 
+<<<<<<< Updated upstream
     for msg in history:
+=======
+    # for msg in history:
+    #     role = "User" if msg["role"] == "user" else "Advisor"
+    #     chat_history += f"{role}: {msg['content']}\n"
+
+    # Detect if the user's question is about Cyber Security
+    def is_cyber_question(text):
+        keywords = ["cyber", "bp355", "bp356", "inte", "security"]
+        return any(word in text.lower() for word in keywords)
+
+    include_cyber = is_cyber_question(user_question)
+
+    # Optional structure and courses only if needed
+    structure_block = ""
+    full_course_block = ""
+    if include_cyber:
+        # Format structure
+        course_dict = {c["title"]: c for c in courses}
+        if structure and "recommended_courses" in structure:
+            structure_block += "### Recommended Study Plan by Year:\n"
+            for year, course_titles in structure["recommended_courses"].items():
+                structure_block += f"**{year.replace('_', ' ').title()}**:\n"
+                for title in course_titles:
+                    course = course_dict.get(title)
+                    if course:
+                        structure_block += f"- {title} ({course['course_code']})\n"
+                    else:
+                        structure_block += f"- {title} (not found in course list)\n"
+                structure_block += "\n"
+
+        # Format courses
+        course_list = []
+        for course in courses:
+            title = course.get("title", "Untitled")
+            code = course.get("course_code", "N/A")
+            desc = course.get("description", "No description available.")
+            course_type = course.get("course_type", "N/A")
+            minor = course.get("minor_track", [])
+            minor_info = f", Minor: {minor[0]}" if minor else ""
+            course_list.append(f"- {title} ({code}): {desc}\n  Type: {course_type}{minor_info}")
+        full_course_block = "\n".join(course_list)
+
+    # Assemble the prompt
+    prompt = (
+        "You are a helpful assistant for RMIT students.\n\n"
+        "You have access to:\n"
+        f"1. Up‐to‐date information scraped from RMIT's official website:\n{rmit_knowledge[:2000]}\n\n"
+    )
+
+    if include_cyber:
+        prompt += (
+            f"3. Bachelor of Cyber Security course data:\n{full_course_block}\n\n"
+            f"4. Recommended study structure:\n{structure_block}\n\n"
+        )
+
+    prompt += f"User asked: {user_question}\n"
+
+    if file_text:
+        prompt += f"\nBelow is the content of a file the user uploaded:\n{file_text}"
+
+    # Use a less echo-prone format
+    formatted_history = ""
+    for msg in st.session_state.messages:
+>>>>>>> Stashed changes
         if msg["role"] == "user":
             chat_history += f"User: {msg['content']}\n"
         elif msg["role"] == "assistant":
@@ -156,6 +226,11 @@ def invoke_bedrock(prompt_text, max_tokens=640, temperature=0.3, top_p=0.9):
     result = json.loads(response["body"].read())
     return result["content"][0]["text"]
 
+<<<<<<< Updated upstream
+=======
+def clear_input():
+    st.session_state["custom_chat_input"] = ""
+>>>>>>> Stashed changes
 
 # === Streamlit UI === #
 st.set_page_config(page_title="RMIT Chatbot", layout="wide")
@@ -168,12 +243,243 @@ with open("cyber_security_program_structure.json", "r", encoding="utf-8") as f2:
     structure = json.load(f2)
 uploaded_pdfs = None
 
+<<<<<<< Updated upstream
 
 st.subheader("💬 Chat with the Course Advisor")
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+=======
+# Initialise state
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "show_upload" not in st.session_state:
+    st.session_state.show_upload = False
+if "uploaded_file" not in st.session_state:
+    st.session_state.uploaded_file = None
+if "custom_chat_input" not in st.session_state:
+    st.session_state.custom_chat_input = ""
+if "processed_input" not in st.session_state:
+    st.session_state.processed_input = False
 
+# # Header
+# st.markdown(
+#     """
+#     <div style='text-align: center; margin-top: 30px;'>
+#         <img src="https://www.edigitalagency.com.au/wp-content/uploads/RMIT-University-logo-white-png-1200x422.png" width="220" style="margin-bottom: 10px;">
+#         <h3 style='font-family: "Segoe UI", sans-serif;'>
+#             🎓 Welcome to the RMIT Course Advisor<br>
+#             Get help with subjects, enrolment, and program info across all disciplines.
+#         </h3>
+#     </div>
+#     """,
+#     unsafe_allow_html=True
+# )
+
+# # Show chat messages
+# for msg in st.session_state.messages:
+#     if msg["content"].strip():
+#         with st.chat_message(msg["role"]):
+#             st.markdown(msg["content"])
+
+# # Input and upload toggle row
+# col1, col2 = st.columns([2, 25], gap="small")
+
+# with col2:
+#     uploaded_file = st.session_state.get("uploaded_file", None)
+#     user_question = st.text_input(
+#     "Ask about course enrolment, policies, or RMIT info...",
+#     key="custom_chat_input",
+#     label_visibility="collapsed",
+#     placeholder="Ask about course enrolment, policies, or RMIT info...",
+#     on_change=clear_input
+# )
+
+# with col1:
+#     if st.button("＋", key="upload_toggle"):
+#         st.session_state.show_upload = not st.session_state.get("show_upload", False)
+
+# st.markdown("""
+# <style>
+# /* Container holding the whole input bar and + button */
+# div[data-testid="stHorizontalBlock"] {
+#     position: fixed;
+#     bottom: 1%;
+#     left: 20%;
+#     width: 60%;
+#     background-color: #1e1e1e;
+#     padding: 24px 30px;
+#     z-index: 1000;
+#     border-top: 1px solid #333;
+#     border-radius: 8px;
+#     display: flex;
+#     align-items: center;
+#     box-shadow: 0 -2px 5px rgba(0,0,0,0.3);
+    
+# }
+
+# /* Full-width text input */
+# div[data-testid="stChatInput"] input[type="text"]{
+#     width: 100% !important;
+#     background: transparent !important;
+#     border: none !important;
+#     color: white !important;
+#     font-size: 18px !important;
+#     padding: 10px 12px !important;
+# }
+
+# /* Style the + button only inside the input row */
+# div[data-testid="stHorizontalBlock"] > div button[kind="secondary"] {
+#     width: 40px !important;
+#     height: 40px !important;
+#     min-width: 0 !important;
+#     border-radius: 50% !important;
+#     font-size: 22px !important;
+#     background-color: #444 !important;
+#     color: white !important;
+#     border: none !important;
+#     margin-left: auto;
+# }
+
+# /* Prevent bottom overlap */
+# main .block-container {
+#     padding-bottom: 80px !important;
+# }
+# </style>
+# """, unsafe_allow_html=True)
+
+# # Show file uploader
+# if st.session_state.get("show_upload"):
+#     uploaded_file = st.file_uploader(
+#         "Upload file",
+#         type=["pdf", "png", "jpg", "jpeg", "txt", "csv"],
+#         label_visibility="collapsed"
+#     )
+
+# if user_question:
+#     file_text = ""
+#     if uploaded_file is not None:
+#         file_text = uploaded_file.read().decode("utf-8", errors="ignore")
+#         st.session_state.show_upload = False  # Hide the uploader after sending
+
+#     # Save and display user message
+#     with st.chat_message("user"):
+#         st.markdown(user_question)
+#     st.session_state.messages.append({"role": "user", "content": user_question})
+
+#     placeholder = st.empty()
+#     st.session_state.messages.append({"role": "assistant", "content": ""})
+#     full_course_context = "\n".join(
+#         f"- {c['title']} ({c['course_code']}): {c['description']}" for c in courses
+#     )
+#     structure_text = "### Recommended Study Plan by Year:\n"
+#     for year, titles in structure["recommended_courses"].items():
+#         structure_text += f"**{year.replace('_',' ').title()}**: " + ", ".join(titles) + "\n"
+
+#     prompt = build_prompt(
+#     full_course_context=full_course_context,
+#     user_question=user_question,
+#     structure_text=structure_text,
+#     rmit_knowledge=rmit_knowledge,
+#     file_text=file_text
+# )
+
+#     # === Claude + cache check === #
+#     if "response_cache" not in st.session_state:
+#         st.session_state["response_cache"] = {}
+#     response_cache = st.session_state["response_cache"]
+
+#     if prompt in response_cache:
+#         response = response_cache[prompt]
+#     else:
+#         response = invoke_bedrock(prompt)
+#         response_cache[prompt] = response
+
+#     st.session_state.messages.append({"role": "assistant", "content": response})
+#     with st.chat_message("assistant"):
+#         placeholder = st.empty()
+#         placeholder.markdown("✍️ Thinking...")
+#         placeholder.markdown(response, unsafe_allow_html=False)
+#         uploaded_file = None
+
+# user_question = user_question.strip()
+# if not user_question:
+#     st.stop()
+
+# === Helper function === #
+def process_input():
+    if st.session_state.processed_input:
+        return
+    
+    user_question = st.session_state.custom_chat_input.strip()
+    if not user_question:
+        return
+
+    file_text = ""
+    uploaded_file = st.session_state.uploaded_file
+    if uploaded_file is not None:
+        file_text = uploaded_file.read().decode("utf-8", errors="ignore")
+        st.session_state.show_upload = False
+
+    # Display user message
+    st.session_state.messages.append({"role": "user", "content": user_question})
+    with st.chat_message("user"):
+        st.markdown(user_question)
+
+    # Build prompt
+    full_course_context = "\n".join(
+        f"- {c['title']} ({c['course_code']}): {c['description']}" for c in courses
+    )
+    structure_text = "### Recommended Study Plan by Year:\n"
+    for year, titles in structure["recommended_courses"].items():
+        structure_text += f"**{year.replace('_',' ').title()}**: " + ", ".join(titles) + "\n"
+
+    prompt = build_prompt(
+        full_course_context=full_course_context,
+        user_question=user_question,
+        structure_text=structure_text,
+        rmit_knowledge=rmit_knowledge,
+        file_text=file_text,
+    )
+
+    # Claude + cache check
+    if "response_cache" not in st.session_state:
+        st.session_state["response_cache"] = {}
+    cache = st.session_state["response_cache"]
+
+    if prompt in cache:
+        response = cache[prompt]
+    else:
+        response = invoke_bedrock(prompt)
+        cache[prompt] = response
+
+    st.session_state.messages.append({"role": "assistant", "content": response})
+    with st.chat_message("assistant"):
+        st.markdown(response, unsafe_allow_html=False)
+
+    # Reset input
+    st.session_state.custom_chat_input = ""
+    st.session_state.uploaded_file = None
+    st.session_state.processed_input = True
+
+# === UI === #
+
+# Header
+st.markdown("""
+<div style='text-align: center; margin-top: 30px;'>
+    <img src="https://www.edigitalagency.com.au/wp-content/uploads/RMIT-University-logo-white-png-1200x422.png" width="220" style="margin-bottom: 10px;">
+    <h3 style='font-family: "Segoe UI", sans-serif;'>
+        🎓 Welcome to the RMIT Course Advisor<br>
+        Get help with subjects, enrolment, and program info across all disciplines.
+    </h3>
+</div>
+""", unsafe_allow_html=True)
+
+# Show chat history
+>>>>>>> Stashed changes
+for msg in st.session_state.messages:
+    if msg["content"].strip():
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+<<<<<<< Updated upstream
 user_question = st.chat_input("Ask about course enrolment, policies, or RMIT info...")
 
 if user_question:
@@ -220,3 +526,72 @@ if user_question:
         st.session_state.messages.append({"role": "assistant", "content": error_msg})
         with st.chat_message("assistant"):
             st.markdown(error_msg)
+=======
+# Input + toggle
+col1, col2 = st.columns([2, 25], gap="small")
+with col1:
+    if st.button("＋", key="upload_toggle"):
+        st.session_state.show_upload = not st.session_state.get("show_upload", False)
+
+with col2:
+    st.text_input(
+        "Ask about course enrolment, policies, or RMIT info...",
+        key="custom_chat_input",
+        placeholder="Ask about course enrolment, policies, or RMIT info...",
+        label_visibility="collapsed",
+        on_change=process_input
+    )
+
+if not st.session_state.custom_chat_input.strip():
+    st.session_state.processed_input = False
+
+# Show uploader
+if st.session_state.show_upload:
+    st.session_state.uploaded_file = st.file_uploader(
+        "Upload file",
+        type=["pdf", "png", "jpg", "jpeg", "txt", "csv"],
+        label_visibility="collapsed"
+    )
+
+# Style
+st.markdown("""
+<style>
+div[data-testid="stHorizontalBlock"] {
+    position: fixed;
+    bottom: 1%;
+    left: 20%;
+    width: 60%;
+    background-color: #1e1e1e;
+    padding: 24px 30px;
+    z-index: 1000;
+    border-top: 1px solid #333;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.3);
+}
+div[data-testid="stChatInput"] input[type="text"] {
+    width: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    color: white !important;
+    font-size: 18px !important;
+    padding: 10px 12px !important;
+}
+div[data-testid="stHorizontalBlock"] > div button[kind="secondary"] {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 0 !important;
+    border-radius: 50% !important;
+    font-size: 22px !important;
+    background-color: #444 !important;
+    color: white !important;
+    border: none !important;
+    margin-left: auto;
+}
+main .block-container {
+    padding-bottom: 80px !important;
+}
+</style>
+""", unsafe_allow_html=True)
+>>>>>>> Stashed changes
