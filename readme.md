@@ -56,7 +56,7 @@ pip install -r requirements.txt
 Note: If you plan to use the crawler to update `rmit_data.db`, ensure **BeautifulSoup** is installed:
 
 ```bash
-pip install beautifulsoup4
+pip install beautifulsoup4 request
 ```
 
 ---

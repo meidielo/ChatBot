@@ -1,143 +1,215 @@
 {
-  "Architecture and Urban Design": [
-    "architecture",
-    "urban design"
-  ],
-  "Art and Photography": [
-    "fine art",
-    "photography",
-    "art"
-  ],
-  "Biomedical Sciences": [
-    "biomedical",
-    "biomed",
-    "biological science"
-  ],
-  "Building, Construction and Project Management": [
-    "construction",
-    "project management",
-    "building"
-  ],
-  "Business": [
-    "business",
-    "commerce",
-    "management",
-    "accounting",
-    "finance",
-    "economics",
-    "marketing",
-    "mba"
-  ],
-  "Communication and Digital Media": [
-    "communication",
-    "media",
-    "journalism",
-    "advertising",
-    "public relations",
-    "digital media"
-  ],
-  "Community Services and Social Sciences": [
-    "social work",
-    "community",
-    "counselling",
-    "social science",
-    "psychology"
-  ],
-  "Design": [
-    "design",
-    "graphic",
-    "fashion",
-    "industrial design",
-    "interior"
-  ],
-  "Education and Teaching": [
-    "education",
-    "teaching",
-    "teacher",
-    "early childhood"
-  ],
-  "Engineering": [
-    "engineering",
-    "civil",
-    "mechanical",
-    "electrical",
-    "aerospace",
-    "mechatronics"
-  ],
-  "Environmental Science": [
-    "environment",
-    "climate",
-    "sustainability",
-    "conservation"
-  ],
-  "Health and Biomedical Sciences": [
-    "health",
-    "nursing",
-    "occupational therapy",
-    "physiotherapy",
-    "public health",
-    "medical"
-  ],
-  "Information Technology": [
-    "it",
-    "information technology",
-    "software",
-    "programming",
-    "coding"
-  ],
-  "Law and Legal Studies": [
-    "law",
-    "legal"
-  ],
-  "Mathematics and Statistics": [
-    "math",
-    "mathematics",
-    "statistics"
-  ],
-  "Media and Communication": [
-    "media",
-    "film",
-    "sound",
-    "animation",
-    "screen"
-  ],
-  "Property and Valuation": [
-    "property",
-    "real estate",
-    "valuation"
-  ],
-  "Science": [
-    "science",
-    "chemistry",
-    "physics",
-    "biology",
-    "lab"
-  ],
-  "Aviation": [
-    "aviation",
-    "flight",
-    "airline"
-  ],
-  "Cyber Security": [
-    "cyber",
-    "cybersecurity",
-    "bp355",
-    "bp356"
-  ],
-  "Data Science and Analytics": [
-    "data science",
-    "analytics",
-    "data analytics",
-    "big data"
-  ],
-  "Game Design and Development": [
-    "game",
-    "games",
-    "game development"
-  ],
-  "Psychology": [
-    "psychology",
-    "mental health",
-    "behavioural science"
-  ]
+    "Architecture": [
+        "architecture"
+    ],
+    "Art": [
+        "art",
+        "fine art"
+    ],
+    "Animation": [
+        "animation"
+    ],
+    "Audiovisual": [
+        "audiovisual",
+        "sound design"
+    ],
+    "Aviation": [
+        "aviation"
+    ],
+    "Biomedical Sciences": [
+        "biomedical",
+        "biomed"
+    ],
+    "Medical Sciences": [
+        "medical science",
+        "medical"
+    ],
+    "Biotechnology": [
+        "biotech",
+        "biotechnology"
+    ],
+    "Building": [
+        "building"
+    ],
+    "Business": [
+        "business",
+        "commerce"
+    ],
+    "Accounting": [
+        "accounting"
+    ],
+    "Marketing": [
+        "marketing"
+    ],
+    "Finance": [
+        "finance",
+        "financial"
+    ],
+    "Economics": [
+        "economics"
+    ],
+    "Entrepreneurship": [
+        "entrepreneurship",
+        "startup",
+        "start-up"
+    ],
+    "Cyber Security": [
+        "cyber",
+        "cybersecurity",
+        "security"
+    ],
+    "Communication": [
+        "communication"
+    ],
+    "Media": [
+        "media",
+        "film",
+        "screen",
+        "digital media"
+    ],
+    "Photography": [
+        "photography"
+    ],
+    "Music": [
+        "music"
+    ],
+    "Performing Arts": [
+        "performing",
+        "drama",
+        "theatre"
+    ],
+    "Visual Arts": [
+        "visual arts",
+        "drawing",
+        "painting"
+    ],
+    "Design": [
+        "design",
+        "graphic design",
+        "fashion design",
+        "industrial design"
+    ],
+    "Education": [
+        "education",
+        "teaching",
+        "teacher",
+        "early childhood"
+    ],
+    "Engineering": [
+        "engineering",
+        "civil",
+        "mechanical",
+        "electrical",
+        "aerospace",
+        "mechatronics"
+    ],
+    "Environment": [
+        "environment",
+        "climate",
+        "sustainability",
+        "conservation"
+    ],
+    "Fashion": [
+        "fashion"
+    ],
+    "Food Technology": [
+        "food",
+        "food science"
+    ],
+    "Game Design and Development": [
+        "game",
+        "game development"
+    ],
+    "Geospatial Science": [
+        "geospatial",
+        "gis"
+    ],
+    "Health": [
+        "health",
+        "nursing",
+        "public health",
+        "occupational therapy",
+        "physiotherapy"
+    ],
+    "Information Technology": [
+        "technology",
+        "information technology",
+        "software",
+        "programming",
+        "coding",
+        "IT"
+    ],
+    "Human Resources": [
+        "hr",
+        "human resources"
+    ],
+    "Languages": [
+        "languages",
+        "linguistics"
+    ],
+    "Law": [
+        "law",
+        "legal"
+    ],
+    "Mathematics": [
+        "math",
+        "mathematics"
+    ],
+    "Statistics": [
+        "stats",
+        "statistics"
+    ],
+    "Psychology": [
+        "psychology",
+        "mental health",
+        "behavioural science"
+    ],
+    "Social Science": [
+        "social science",
+        "sociology",
+        "anthropology"
+    ],
+    "Science": [
+        "science",
+        "chemistry",
+        "physics",
+        "biology",
+        "natural science",
+        "physical science"
+    ],
+    "Criminology": [
+        "criminology",
+        "crime"
+    ],
+    "Property": [
+        "property",
+        "real estate"
+    ],
+    "Project Management": [
+        "project management"
+    ],
+    "Research": [
+        "research"
+    ],
+    "Surveying": [
+        "surveying"
+    ],
+    "Sustainability": [
+        "sustainability"
+    ],
+    "Trades": [
+        "trades",
+        "plumbing",
+        "electrical",
+        "carpentry"
+    ],
+    "Urban Planning": [
+        "urban planning",
+        "planning"
+    ],
+    "Analytics": [
+        "analytics",
+        "data analytics",
+        "big data"
+    ]
 }

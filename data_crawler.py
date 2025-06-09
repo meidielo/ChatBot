@@ -4,13 +4,13 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 import sqlite3
 import time
+import json
 
 BASE_URL = "https://www.rmit.edu.au/"
 
 def init_db(db_path="rmit_data.db"):
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
-    # Example schema: store URL + extracted text
     cur.execute("""
         CREATE TABLE IF NOT EXISTS pages (
             url TEXT PRIMARY KEY,
@@ -49,9 +49,28 @@ def crawl_page(url, cur, conn, visited, depth=0, max_depth=2):
     except Exception as e:
         print(f"Failed to crawl {url}: {e}")
 
+def scrape_disciplines():
+    url = "https://www.rmit.edu.au/study-with-us"
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, "html.parser")
+
+    area_tags = soup.select("a.link-block__link, a[href*='/study-with-us/']")
+    disciplines = {}
+
+    for tag in area_tags:
+        title = tag.get_text(strip=True)
+        if title:
+            simplified_keywords = title.lower().replace("&", "and").replace("/", " ").split()
+            disciplines[title] = list(set(simplified_keywords))
+
+    with open("discipline_keywords.json", "w", encoding="utf-8") as f:
+        json.dump(disciplines, f, indent=2)
+    print("✅ Scraped and saved discipline keywords.")
+
 if __name__ == "__main__":
     conn, cur = init_db()
     visited_urls = set()
     crawl_page(BASE_URL, cur, conn, visited_urls, depth=0, max_depth=2)
     conn.close()
     print("Crawling complete. Data saved to rmit_data.db.")
+    scrape_disciplines()

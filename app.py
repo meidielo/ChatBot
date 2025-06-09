@@ -122,8 +122,8 @@ def build_prompt(full_course_context, user_question, structure_text, rmit_knowle
     # Assemble the prompt
     prompt = (
         "You are a helpful assistant for RMIT students.\n\n"
-        + memory_context
-        + "You have access to:\n"
+        f"{memory_context}\n"
+        "You have access to:\n"
         f"1. Up‐to‐date information scraped from RMIT's official website:\n{rmit_knowledge[:2000]}\n\n"
         "If the question is not clear, ask the student to clarify. Only use knowledge provided.\n"
         f"User: {user_question}\n\n"
