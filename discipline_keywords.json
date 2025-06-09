@@ -1,0 +1,143 @@
+{
+  "Architecture and Urban Design": [
+    "architecture",
+    "urban design"
+  ],
+  "Art and Photography": [
+    "fine art",
+    "photography",
+    "art"
+  ],
+  "Biomedical Sciences": [
+    "biomedical",
+    "biomed",
+    "biological science"
+  ],
+  "Building, Construction and Project Management": [
+    "construction",
+    "project management",
+    "building"
+  ],
+  "Business": [
+    "business",
+    "commerce",
+    "management",
+    "accounting",
+    "finance",
+    "economics",
+    "marketing",
+    "mba"
+  ],
+  "Communication and Digital Media": [
+    "communication",
+    "media",
+    "journalism",
+    "advertising",
+    "public relations",
+    "digital media"
+  ],
+  "Community Services and Social Sciences": [
+    "social work",
+    "community",
+    "counselling",
+    "social science",
+    "psychology"
+  ],
+  "Design": [
+    "design",
+    "graphic",
+    "fashion",
+    "industrial design",
+    "interior"
+  ],
+  "Education and Teaching": [
+    "education",
+    "teaching",
+    "teacher",
+    "early childhood"
+  ],
+  "Engineering": [
+    "engineering",
+    "civil",
+    "mechanical",
+    "electrical",
+    "aerospace",
+    "mechatronics"
+  ],
+  "Environmental Science": [
+    "environment",
+    "climate",
+    "sustainability",
+    "conservation"
+  ],
+  "Health and Biomedical Sciences": [
+    "health",
+    "nursing",
+    "occupational therapy",
+    "physiotherapy",
+    "public health",
+    "medical"
+  ],
+  "Information Technology": [
+    "it",
+    "information technology",
+    "software",
+    "programming",
+    "coding"
+  ],
+  "Law and Legal Studies": [
+    "law",
+    "legal"
+  ],
+  "Mathematics and Statistics": [
+    "math",
+    "mathematics",
+    "statistics"
+  ],
+  "Media and Communication": [
+    "media",
+    "film",
+    "sound",
+    "animation",
+    "screen"
+  ],
+  "Property and Valuation": [
+    "property",
+    "real estate",
+    "valuation"
+  ],
+  "Science": [
+    "science",
+    "chemistry",
+    "physics",
+    "biology",
+    "lab"
+  ],
+  "Aviation": [
+    "aviation",
+    "flight",
+    "airline"
+  ],
+  "Cyber Security": [
+    "cyber",
+    "cybersecurity",
+    "bp355",
+    "bp356"
+  ],
+  "Data Science and Analytics": [
+    "data science",
+    "analytics",
+    "data analytics",
+    "big data"
+  ],
+  "Game Design and Development": [
+    "game",
+    "games",
+    "game development"
+  ],
+  "Psychology": [
+    "psychology",
+    "mental health",
+    "behavioural science"
+  ]
+}

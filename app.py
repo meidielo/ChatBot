@@ -7,8 +7,8 @@ import streamlit.components.v1 as components
 import json
 import boto3
 import sqlite3
-import requests
-from io import BytesIO
+import difflib
+import re
 from PyPDF2 import PdfReader
 
 st.set_page_config(page_title="RMIT Chatbot", layout="wide")
@@ -55,7 +55,6 @@ def load_rmit_pages(db_path="rmit_data.db"):
     cur.execute("SELECT content FROM pages")
     all_pages = cur.fetchall()
     conn.close()
-    # Join all page text together or keep separate as needed
     return "\n\n".join(page[0] for page in all_pages)
 
 # Load all scraped RMIT content once at startup
@@ -65,10 +64,19 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # === Helper: Build Prompt from JSON + Structure === #
-def build_prompt(full_course_context, user_question, structure_text, search_summary, rmit_knowledge, file_text=""):
+def build_prompt(full_course_context, user_question, structure_text, rmit_knowledge):
     # Load chat history
+    profile = st.session_state.get("user_profile", {})
+    memory_context = ""
     history = st.session_state.get("messages", [])
     chat_history = ""
+
+    if profile.get("level"):
+        memory_context += f"The user is a {profile['level']} student. "
+    if profile.get("discipline"):
+        memory_context += f"Their discipline is {profile['discipline']}. "
+    if profile.get("name"):
+        memory_context += f"Their name is {profile['name']}. "
 
     for msg in history:
         role = "User" if msg["role"] == "user" else "Advisor"
@@ -114,22 +122,18 @@ def build_prompt(full_course_context, user_question, structure_text, search_summ
     # Assemble the prompt
     prompt = (
         "You are a helpful assistant for RMIT students.\n\n"
-        "You have access to:\n"
+        + memory_context
+        + "You have access to:\n"
         f"1. Up‐to‐date information scraped from RMIT's official website:\n{rmit_knowledge[:2000]}\n\n"
-        f"2. Recent web results related to the question:\n{search_summary}\n\n"
+        "If the question is not clear, ask the student to clarify. Only use knowledge provided.\n"
+        f"User: {user_question}\n\n"
     )
 
     if include_cyber:
         prompt += (
-            f"3. Bachelor of Cyber Security course data:\n{full_course_block}\n\n"
-            f"4. Recommended study structure:\n{structure_block}\n\n"
+            f"2. Bachelor of Cyber Security course data:\n{full_course_block}\n\n"
+            f"3. Recommended study structure:\n{structure_block}\n\n"
         )
-
-    if uploaded_file is not None and file_text:
-        prompt += f"{user_question}\n\nBelow is the content of a file the user uploaded:\n{file_text}"
-    else:
-        prompt += user_question
-
 
     # Use a less echo-prone format
     formatted_history = ""
@@ -142,7 +146,6 @@ def build_prompt(full_course_context, user_question, structure_text, search_summ
     prompt += f"\n\n(Here is the recent conversation context for your reference only):\n{formatted_history}"
 
     return prompt
-
 
 # === Helper: Extract text from multiple PDFs === #
 @st.cache_data
@@ -158,7 +161,6 @@ def extract_text_from_pdfs(pdf_files):
         except Exception as e:
             all_text.append(f"[Error reading file {pdf_file.name}: {str(e)}]")
     return "\n\n".join(all_text)
-
 
 # === Helper: Invoke Claude via Bedrock === #
 def invoke_bedrock(prompt_text, max_tokens=640, temperature=0.3, top_p=0.9):
@@ -177,7 +179,12 @@ def invoke_bedrock(prompt_text, max_tokens=640, temperature=0.3, top_p=0.9):
         "max_tokens": max_tokens,
         "temperature": temperature,
         "top_p": top_p,
-        "messages": [{"role": "user", "content": prompt_text}]
+        "messages": [
+            {
+                "role": "user",
+                "content": prompt_text
+            }
+        ]
     }
 
     response = bedrock_runtime.invoke_model(
@@ -190,18 +197,32 @@ def invoke_bedrock(prompt_text, max_tokens=640, temperature=0.3, top_p=0.9):
     result = json.loads(response["body"].read())
     return result["content"][0]["text"]
 
+def fuzzy_discipline(text):
+    text = text.lower()
+    for discipline, keywords in DISCIPLINE_KEYWORDS.items():
+        for keyword in keywords:
+            if keyword in text:
+                return discipline
+    return None
+
 # === Streamlit UI === #
 # Load data
 with open("courses_data.json", "r", encoding="utf-8") as f1:
     courses = json.load(f1)
 with open("cyber_security_program_structure.json", "r", encoding="utf-8") as f2:
     structure = json.load(f2)
+with open("discipline_keywords.json") as f:
+    DISCIPLINE_KEYWORDS = json.load(f)
 
 # Initialise state
-if "show_upload" not in st.session_state:
-    st.session_state.show_upload = False
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "user_profile" not in st.session_state:
+    st.session_state.user_profile = {
+        "level": None,
+        "discipline": None,
+        "name": None
+    }
 
 # Header
 st.markdown(
@@ -219,82 +240,40 @@ st.markdown(
 
 # Show chat messages
 for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+    if msg["content"].strip():
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
 
-# Input and upload toggle row
-col1, col2 = st.columns([2, 25], gap="small")
-
-with col2:
-    uploaded_file = st.session_state.get("uploaded_file", None)
-    user_question = st.chat_input("Ask about course enrolment, policies, or RMIT info...")
-
-with col1:
-    if st.button("＋", key="upload_toggle"):
-        st.session_state.show_upload = not st.session_state.get("show_upload", False)
-
-st.markdown("""
-<style>
-/* Container holding the whole input bar and + button */
-div[data-testid="stHorizontalBlock"] {
-    position: fixed;
-    bottom: 1%;
-    left: 20%;
-    width: 60%;
-    background-color: #1e1e1e;
-    padding: 24px 30px;
-    z-index: 1000;
-    border-top: 1px solid #333;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    box-shadow: 0 -2px 5px rgba(0,0,0,0.3);
-    
-}
-
-/* Full-width text input */
-div[data-testid="stChatInput"] input[type="text"]{
-    width: 100% !important;
-    background: transparent !important;
-    border: none !important;
-    color: white !important;
-    font-size: 18px !important;
-    padding: 10px 12px !important;
-}
-
-/* Style the + button only inside the input row */
-div[data-testid="stHorizontalBlock"] > div button[kind="secondary"] {
-    width: 40px !important;
-    height: 40px !important;
-    min-width: 0 !important;
-    border-radius: 50% !important;
-    font-size: 22px !important;
-    background-color: #444 !important;
-    color: white !important;
-    border: none !important;
-    margin-left: auto;
-}
-
-/* Prevent bottom overlap */
-main .block-container {
-    padding-bottom: 80px !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# Show file uploader
-if st.session_state.get("show_upload"):
-    uploaded_file = st.file_uploader(
-        "Upload file",
-        type=["pdf", "png", "jpg", "jpeg", "txt", "csv"],
-        label_visibility="collapsed"
-    )
+user_question = st.chat_input("Ask about course enrolment, policies, or RMIT info...")
 
 if user_question:
-    file_text = ""
-    if uploaded_file is not None:
-        file_text = uploaded_file.read().decode("utf-8", errors="ignore")
-        st.session_state.show_upload = False  # Hide the uploader after sending
+    text = user_question.lower()
+
+    # Extract name from input
+    name_match = re.search(r"my name is ([a-zA-Z\-'\s]+)", user_question, re.IGNORECASE)
+    if name_match:
+        name = name_match.group(1).strip().title()
+        st.session_state.user_profile["name"] = name
+
+    # Level
+    if "master" in text:
+        st.session_state.user_profile["level"] = "Master"
+    elif "bachelor" in text:
+        st.session_state.user_profile["level"] = "Bachelor"
+
+    # print("Trying to match discipline from text:", text)
+
+    # Discipline
+    tokens = text.split()
+    for d, kws in DISCIPLINE_KEYWORDS.items():
+        if any(kw in tokens for kw in kws):
+            st.session_state.user_profile["discipline"] = d
+            break
+    else:
+        # fallback to fuzzy
+        discipline = fuzzy_discipline(text)
+        if discipline:
+            st.session_state.user_profile["discipline"] = discipline
 
     # Save and display user message
     st.session_state.messages.append({"role": "user", "content": user_question})
@@ -303,6 +282,8 @@ if user_question:
 
     placeholder = st.empty()
     st.session_state.messages.append({"role": "assistant", "content": ""})
+
+    # Build prompt
     full_course_context = "\n".join(
         f"- {c['title']} ({c['course_code']}): {c['description']}" for c in courses
     )
@@ -310,26 +291,28 @@ if user_question:
     for year, titles in structure["recommended_courses"].items():
         structure_text += f"**{year.replace('_',' ').title()}**: " + ", ".join(titles) + "\n"
 
-    prompt = build_prompt(
-    full_course_context=full_course_context,
-    user_question=user_question,
-    structure_text=structure_text,
-    rmit_knowledge=rmit_knowledge,
-    file_text=file_text
-)
+    # st.sidebar.write("🧠 Memory:", st.session_state.user_profile)
+
+    chat_messages = build_prompt(
+        user_question=user_question,
+        rmit_knowledge=rmit_knowledge,
+        full_course_context=full_course_context,
+        structure_text=structure_text
+    )
 
     # === Claude + cache check === #
+    chat_key = json.dumps(chat_messages, sort_keys=True)
+
     if "response_cache" not in st.session_state:
         st.session_state["response_cache"] = {}
     response_cache = st.session_state["response_cache"]
 
-    if prompt in response_cache:
-        response = response_cache[prompt]
+    if chat_key in response_cache:
+        response = response_cache[chat_key]
     else:
-        response = invoke_bedrock(prompt)
-        response_cache[prompt] = response
+        response = invoke_bedrock(chat_messages)
+        response_cache[chat_key] = response
 
     st.session_state.messages.append({"role": "assistant", "content": response})
     with st.chat_message("assistant"):
         st.markdown(response, unsafe_allow_html=False)
-        uploaded_file = None

@@ -42,7 +42,7 @@ If not 3.11, download from [python.org](https://www.python.org/downloads/release
 
 ```bash
 cd cyber_security_chatbot
-python -m venv .venv
+py -3.11 -m venv .venv
 .\.venv\Scripts\activate      # On Windows
 source .venv/bin/activate      # On macOS/Linux
 ```
