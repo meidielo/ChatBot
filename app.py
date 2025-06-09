@@ -124,7 +124,7 @@ def build_prompt(full_course_context, user_question, structure_text, rmit_knowle
         "You are a helpful assistant for RMIT students.\n\n"
         f"{memory_context}\n"
         "You have access to:\n"
-        f"1. Up‐to‐date information scraped from RMIT's official website:\n{rmit_knowledge[:2000]}\n\n"
+        f"1. Up-to-date information scraped from RMIT's official website:\n{' '.join(rmit_knowledge.split()[:2000])}\n\n"
         "If the question is not clear, ask the student to clarify. Only use knowledge provided.\n"
         f"User: {user_question}\n\n"
     )
@@ -134,6 +134,18 @@ def build_prompt(full_course_context, user_question, structure_text, rmit_knowle
             f"2. Bachelor of Cyber Security course data:\n{full_course_block}\n\n"
             f"3. Recommended study structure:\n{structure_block}\n\n"
         )
+
+    # Check if question contains course codes
+    course_codes = extract_course_code(user_question)
+    if course_codes:
+        prompt += "Details of relevant course(s):\n"
+        for code in course_codes:
+            course = course_lookup.get(code.lower())
+            if course:
+                prompt += (
+                    f"- {code}: {course['title']} ({course['credit_points']} credit points), "
+                    f"offered at {course['campus']}, part of {course['program']}.\n"
+                )
 
     # Use a less echo-prone format
     formatted_history = ""
@@ -205,14 +217,36 @@ def fuzzy_discipline(text):
                 return discipline
     return None
 
+def extract_course_code(text):
+    match = re.findall(r"\b[A-Z]{4}\d{4}\b", text)
+    return match 
+
 # === Streamlit UI === #
 # Load data
 with open("courses_data.json", "r", encoding="utf-8") as f1:
     courses = json.load(f1)
 with open("cyber_security_program_structure.json", "r", encoding="utf-8") as f2:
     structure = json.load(f2)
+with open("rmit_courses.json") as f3:
+    course_data = json.load(f3)
 with open("discipline_keywords.json") as f:
     DISCIPLINE_KEYWORDS = json.load(f)
+
+course_lookup = {}
+program_lookup = {}
+
+for program in course_data:
+    title = program["program_title"]
+    program_lookup[title.lower()] = program["course_details"]
+
+    for course in program["course_details"]:
+        code = course["course_code"].lower()
+        course_lookup[code] = {
+            "title": course["title"],
+            "credit_points": course["credit_points"],
+            "campus": course["campus"],
+            "program": title
+        }
 
 # Initialise state
 if "messages" not in st.session_state:
