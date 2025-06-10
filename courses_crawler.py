@@ -5,7 +5,7 @@ import time
 from urllib.parse import urljoin
 
 BASE_URL = "https://www.rmit.edu.au"
-START_URL = "https://www.rmit.edu.au/study-with-us/levels-of-study/postgraduate-study/masters-by-coursework"
+START_URL = "https://www.rmit.edu.au/study-with-us/levels-of-study/undergraduate-study/bachelor-degrees"
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
 }
@@ -50,7 +50,7 @@ def crawl_programs():
     try:
         res = requests.get(START_URL, headers=HEADERS)
         soup = BeautifulSoup(res.text, "html.parser")
-        program_links = soup.select("a[href*='masters-by-coursework']")
+        program_links = soup.select("a[href*='bachelor-degrees']")
 
         for link in program_links:
             title = clean_text(link.get_text())
@@ -69,7 +69,7 @@ def crawl_programs():
             try:
                 sub_res = requests.get(program_url, headers=HEADERS, timeout=10)
                 sub_soup = BeautifulSoup(sub_res.text, "html.parser")
-                plan_links = sub_soup.select("a[href*='mc'][href*='auscy']")
+                plan_links = sub_soup.select("a[href*='bp'][href*='auscy']")
 
                 for plan_link in plan_links:
                     plan_url = urljoin(BASE_URL, plan_link.get("href"))
@@ -90,6 +90,6 @@ def crawl_programs():
 
 if __name__ == "__main__":
     crawl_programs()
-    with open("rmit_courses.json", "w", encoding="utf-8") as f:
+    with open("rmit_bachelor_courses.json", "w", encoding="utf-8") as f:
         json.dump(courses_data, f, indent=2, ensure_ascii=False)
-    print(f"Saved {len(courses_data)} course entries to rmit_courses.json")
+    print(f"Saved {len(courses_data)} course entries to rmit_bachelor_courses.json")

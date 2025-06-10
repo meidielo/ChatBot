@@ -1,4 +1,4 @@
-#!C:\Users\Pongo\OneDrive - RMIT University\New Documents\DCNCC\week9_lab_llm_task\.venv\Scripts\python.exe
+#!C:\Users\Pongo\OneDrive - RMIT University\New Documents\DCNCC\Assignment3_Chatbot_Python\.venv\Scripts\python.exe
 
 import sys
 import json

@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Users\Pongo\OneDrive - RMIT University\New Documents\DCNCC\week9_lab_llm_task\.venv"
+VIRTUAL_ENV="C:\Users\Pongo\OneDrive - RMIT University\New Documents\DCNCC\Assignment3_Chatbot_Python\.venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

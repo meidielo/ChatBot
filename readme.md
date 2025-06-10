@@ -56,7 +56,7 @@ pip install -r requirements.txt
 Note: If you plan to use the crawler to update `rmit_data.db`, ensure **BeautifulSoup** is installed:
 
 ```bash
-pip install beautifulsoup4 request
+pip install beautifulsoup4 requests
 ```
 
 ---
@@ -116,7 +116,7 @@ The assistant responds using structured context and scraped information.
 
 ## Testing Notes
 
-* Data limit: First \~2000 characters of `rmit_data.db` are passed to Claude to avoid token overload.
+* Data limit: First \~2000 words of `rmit_data.db` are passed to Claude to avoid token overload.
 * Claude is instructed to avoid repeating user questions or listing irrelevant information unless directly asked.
 
 ---

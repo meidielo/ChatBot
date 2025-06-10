@@ -1,6 +1,6 @@
 # RMIT ChatBot
 # Author: Meidie Fei, Banharith Ly
-# Updated: June 2025
+# Updated: 10 June 2025
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -147,6 +147,17 @@ def build_prompt(full_course_context, user_question, structure_text, rmit_knowle
                     f"offered at {course['campus']}, part of {course['program']}.\n"
                 )
 
+    bachelor_course_codes = extract_course_code(user_question)
+    if bachelor_course_codes:
+        prompt += "Details of relevant course(s):\n"
+        for code in bachelor_course_codes:
+            course = bachelor_course_lookup.get(code.lower())
+            if course:
+                prompt += (
+                    f"- {code}: {course['title']} ({course['credit_points']} credit points), "
+                    f"offered at {course['campus']}, part of {course['program']}.\n"
+                )
+
     # Use a less echo-prone format
     formatted_history = ""
     for msg in st.session_state.messages:
@@ -229,6 +240,8 @@ with open("cyber_security_program_structure.json", "r", encoding="utf-8") as f2:
     structure = json.load(f2)
 with open("rmit_courses.json") as f3:
     course_data = json.load(f3)
+with open("rmit_bachelor_courses.json") as f4:
+    bachelor_course_data = json.load(f4)
 with open("discipline_keywords.json") as f:
     DISCIPLINE_KEYWORDS = json.load(f)
 
@@ -242,6 +255,22 @@ for program in course_data:
     for course in program["course_details"]:
         code = course["course_code"].lower()
         course_lookup[code] = {
+            "title": course["title"],
+            "credit_points": course["credit_points"],
+            "campus": course["campus"],
+            "program": title
+        }
+
+bachelor_course_lookup = {}
+bachelor_program_lookup = {}
+
+for program in bachelor_course_data:
+    title = program["program_title"]
+    bachelor_program_lookup[title.lower()] = program["course_details"]
+
+    for course in program["course_details"]:
+        code = course["course_code"].lower()
+        bachelor_course_lookup[code] = {
             "title": course["title"],
             "credit_points": course["credit_points"],
             "campus": course["campus"],
