@@ -9,6 +9,7 @@ import boto3
 import sqlite3
 import difflib
 import re
+import hashlib
 from PyPDF2 import PdfReader
 
 st.set_page_config(page_title="RMIT Chatbot", layout="wide")
@@ -44,8 +45,38 @@ def get_credentials(username, password):
         IdentityId=identity_response["IdentityId"],
         Logins={f"cognito-idp.{REGION}.amazonaws.com/{USER_POOL_ID}": id_token},
     )
-
+    
     return creds_response["Credentials"]
+
+# Login infor for demo
+user_login = {
+    "demo": hashlib.sha256("demo".encode()).hexdigest()
+}
+
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+if not st.session_state.authenticated:
+    with st.form("login"):
+        st.markdown("LOGIN RMIT CHATBOT")
+        username = st.text_input("Email")
+        password = st.text_input("Password", type="password")
+        submitted = st.form_submit_button("Login")
+
+        if submitted:
+            hashed_pw = hashlib.sha256(password.encode()).hexdigest()
+            if username in user_login and user_login[username] == hashed_pw:
+                st.session_state.authenticated = True
+                st.session_state.username = username
+                st.success("Login Successful")
+                st.experimental_rerun()
+            else:
+                st.error("Invalid")
+
+    st.stop()  
+
+st.sidebar.success(f"Logged in as: {st.session_state.username}")
+
 
 # === load scraped RMIT content from SQLite ===
 @st.cache_data
@@ -64,7 +95,7 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # === Helper: Build Prompt from JSON + Structure === #
-def build_prompt(full_course_context, user_question, structure_text, rmit_knowledge):
+def build_prompt(full_course_context, user_question, structure_text, rmit_knowledge, file_data=None, file_type=None):
     # Load chat history
     profile = st.session_state.get("user_profile", {})
     memory_context = ""
@@ -121,14 +152,14 @@ def build_prompt(full_course_context, user_question, structure_text, rmit_knowle
 
     # Assemble the prompt
     prompt = (
-        "You are a helpful assistant for RMIT students.\n\n"
-        f"{memory_context}\n"
-        "You have access to:\n"
-        f"1. Up-to-date information scraped from RMIT's official website:\n{' '.join(rmit_knowledge.split()[:2000])}\n\n"
-        "If the question is not clear, ask the student to clarify. Only use knowledge provided.\n"
-        f"User: {user_question}\n\n"
-    )
-
+    "You are a helpful assistant for RMIT students.\n\n"
+    "If the student provides their name, "
+    "use that information to personalize your answer. If not, still provide the best possible help based on the question.\n\n"
+    "You have access to:\n"
+    f"1. Up-to-date information scraped from RMIT's official website:\n{' '.join(rmit_knowledge.split()[:2000])}\n\n"
+    "If the question is not clear, ask the student to clarify. Only use knowledge provided.\n"
+    f"User: {user_question}\n\n"
+)
     if include_cyber:
         prompt += (
             f"2. Bachelor of Cyber Security course data:\n{full_course_block}\n\n"
@@ -157,6 +188,15 @@ def build_prompt(full_course_context, user_question, structure_text, rmit_knowle
                     f"- {code}: {course['title']} ({course['credit_points']} credit points), "
                     f"offered at {course['campus']}, part of {course['program']}.\n"
                 )
+
+    if file_data and file_type == "pdf":
+        prompt += f"\n\nThe student has uploaded the following PDF content for context:\n{file_data[:1500]}\n\n"
+    elif file_data and file_type == "json":
+        try:
+            pretty_json = json.dumps(file_data, indent=2)
+            prompt += f"\n\nThe student has uploaded a JSON file. Here’s the structure:\n{pretty_json[:1500]}\n\n"
+        except Exception as e:
+            prompt += f"\n\n(Uploaded JSON could not be parsed: {str(e)})\n\n"
 
     # Use a less echo-prone format
     formatted_history = ""
@@ -229,8 +269,8 @@ def fuzzy_discipline(text):
     return None
 
 def extract_course_code(text):
-    match = re.findall(r"\b[A-Z]{4}\d{4}\b", text)
-    return match 
+    match = re.findall(r"\b[a-zA-Z]{4}\d{4}\b", text)
+    return [m.upper() for m in match]
 
 # === Streamlit UI === #
 # Load data
@@ -301,23 +341,54 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+def read_uploaded_file(uploaded_file):
+    if uploaded_file is None:
+        return None, None
+
+    file_type = uploaded_file.name.split('.')[-1].lower()
+
+    if file_type == "json":
+        try:
+            return json.load(uploaded_file), "json"
+        except Exception as e:
+            return f"[Error reading JSON: {str(e)}]", "error"
+
+    elif file_type == "pdf":
+        try:
+            reader = PdfReader(uploaded_file)
+            all_text = [page.extract_text().strip() for page in reader.pages if page.extract_text()]
+            return "\n\n".join(all_text), "pdf"
+        except Exception as e:
+            return f"[Error reading PDF: {str(e)}]", "error"
+
+    return "[Unsupported file type]", "error"
+
 # Show chat messages
 for msg in st.session_state.messages:
     if msg["content"].strip():
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
+with st.sidebar:
+    st.markdown("### 📁 Upload Files")
+    uploaded_file = st.file_uploader("Upload a PDF or JSON file", type=["pdf", "json"])
+    file_data, file_type = read_uploaded_file(uploaded_file)
+    
+    if st.button("Clear Chat History"):
+        st.session_state.messages = []
+        st.session_state.user_profile = {"level": None, "discipline": None, "name": None}
+        st.session_state.response_cache = {}
+        st.experimental_rerun()
+    
 user_question = st.chat_input("Ask about course enrolment, policies, or RMIT info...")
 
 if user_question:
-    text = user_question.lower()
-
     # Extract name from input
     name_match = re.search(r"my name is ([a-zA-Z\-'\s]+)", user_question, re.IGNORECASE)
     if name_match:
         name = name_match.group(1).strip().title()
         st.session_state.user_profile["name"] = name
-
+    text = user_question
     # Level
     if "master" in text:
         st.session_state.user_profile["level"] = "Master"
@@ -360,7 +431,9 @@ if user_question:
         user_question=user_question,
         rmit_knowledge=rmit_knowledge,
         full_course_context=full_course_context,
-        structure_text=structure_text
+        structure_text=structure_text,
+        file_data=file_data,
+        file_type=file_type
     )
 
     # === Claude + cache check === #

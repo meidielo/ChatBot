@@ -8,7 +8,10 @@
 
 ## Project Overview
 
-This project is a browser-based chatbot built with Streamlit and powered by Claude (via AWS Bedrock). It helps students in the **Bachelor of Cyber Security (BP355/BP356)** program explore courses, program structure, and RMIT resources.
+This project is a browser-based chatbot built with Streamlit and powered by Claude (via AWS Bedrock). It helps students in the **Bachelor of Cyber Security (BP355/BP356)** program explore courses, program structure, and RMIT resources. 
+And have advanced to crawl the RMIT website for information for the knowledge base. Though we only limit the crawler for the first 2000 words as such there would be lack of information. 
+However, with the information gathered the bot would be able to answer more than just **Bachelor of Cyber Security (BP355/BP356)**. Furthermore, the user can upload files for the knowledge base.
+We also implemented a login in with 'demo' and 'demo' as the credentials, and a clear chat button to restart and restore the chatbot as a blank state.
 
 ---
 
@@ -22,9 +25,13 @@ cyber_security_chatbot/
 ├── courses_data.json             <- Course metadata (title, code, description)
 ├── cyber_security_program_structure.json <- Recommended structure by year
 ├── requirements.txt              <- Python package dependencies
+├── rmit_bachelor_courses.json  <- Course from Bachelor including the points, title, code, and location
+├── rmit_courses.json   <- Course from Master including the points, title, code, and location
 ```
 
 ---
+#################################################################
+**####Important####:THE LOGIN INFO FOR THE CHATBOT IS demo and demo**
 
 ## Python & Environment Setup
 
@@ -59,21 +66,6 @@ Note: If you plan to use the crawler to update `rmit_data.db`, ensure **Beautifu
 pip install beautifulsoup4 requests
 ```
 
----
-
-## AWS Configuration (for assessors with IAM access)
-
-Open `app.py` and insert your credentials:
-
-```python
-USERNAME = "<your RMIT student email>"
-PASSWORD = "<temporary password from admin>"
-```
-
-If you are not registered in Cognito, contact the instructor for a test account or follow in read-only mode.
-
----
-
 ## Running the Chatbot
 
 ### Step 1: Start the app
@@ -83,11 +75,11 @@ streamlit run app.py
 ```
 
 The chatbot will open in your browser at:
-[http://localhost:8501](http://localhost:8501)
+[http://localhost:8501]
 
 ### Step 2: Use the interface
 
-* Ask questions about enrolment, policies, or program structure
+* Ask questions about enrolment, policies, or program structure and you can upload pdf or json files
 * The chatbot responds using JSON course data, recommended plans, and scraped public RMIT content
 
 ---
@@ -106,9 +98,10 @@ This will update `rmit_data.db` with the latest text from RMIT's public website 
 
 ## Example Prompts
 
-* "What courses should I take in Year 2?"
-* "Can I choose electives related to AI?"
-* "What are the fees for domestic students?"
+*** Enter demo,demo for login ***
+* "What is the entry requirements for bachelor of IT?"
+* "Provide me a contact information"
+* "I'm doing the bachelor of Information technology I would like to know what to enrol for the first year"
 
 The assistant responds using structured context and scraped information.
 
@@ -116,7 +109,7 @@ The assistant responds using structured context and scraped information.
 
 ## Testing Notes
 
-* Data limit: First \~2000 words of `rmit_data.db` are passed to Claude to avoid token overload.
+* Data limit: First \~2000 words of `rmit_data.db` are passed to Claude to avoid token overload. As such some information isn't accessible for Claude and there are missing information. 
 * Claude is instructed to avoid repeating user questions or listing irrelevant information unless directly asked.
 
 ---
